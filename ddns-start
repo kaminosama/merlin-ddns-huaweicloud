@@ -1,0 +1,28 @@
+#!/bin/sh -e
+hostname=""
+zone_id=""
+record_id=""
+endpoint=""
+huawei_domain=""
+name=""
+password=""
+ip=$(curl ip.me)
+
+token=$(curl -D - -X POST "https://iam."$endpoint"/v3/auth/tokens" \
+-H 'Content-Type: application/json;charset=utf8' \
+-d '{"auth":{"identity":{"methods":["password"],"password":{"user":{"domain":{"name":"'$huawei_domain'"},"name":"'$name'","password":"'$password'"}}}}}' \
+| grep "X-Subject-Token" | sed 's/X-Subject-Token: //g')
+
+status=$(curl -D - -X PUT 'https://dns.'$endpoint'/v2/zones/'$zone_id'/recordsets/'$record_id \
+-H 'Content-Type: application/json;charset=utf8' \
+-H 'X-Auth-Token: '"$token" \
+-d '{"name":"'$hostname'","type":"A","records":["'$ip'"]}' \
+| grep "HTTP/1.1 "| sed "s/HTTP\/1.1 //g"| sed "s/ Accepted//g")
+
+if [ "$status" -eq "202" ];then
+  echo "DDNS has been refreshed successfully."
+  /sbin/ddns_custom_updated 1
+else
+  echo "DDNS not modified."
+  /sbin/ddns_custom_updated 0
+fi
