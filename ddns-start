@@ -6,7 +6,6 @@ endpoint=""
 huawei_domain=""
 name=""
 password=""
-ip=$(curl ip.me)
 
 token=$(curl -D - -X POST "https://iam."$endpoint"/v3/auth/tokens" \
 -H 'Content-Type: application/json;charset=utf8' \
@@ -16,7 +15,7 @@ token=$(curl -D - -X POST "https://iam."$endpoint"/v3/auth/tokens" \
 status=$(curl -D - -X PUT 'https://dns.'$endpoint'/v2/zones/'$zone_id'/recordsets/'$record_id \
 -H 'Content-Type: application/json;charset=utf8' \
 -H 'X-Auth-Token: '"$token" \
--d '{"name":"'$hostname'","type":"A","records":["'$ip'"]}' \
+-d '{"name":"'$hostname'","type":"A","records":["'$1'"]}' \
 | grep "HTTP/1.1 "| sed "s/HTTP\/1.1 //g"| sed "s/ Accepted//g")
 
 if [ "$status" -eq "202" ];then
